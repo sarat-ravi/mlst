@@ -104,6 +104,13 @@ def find_mlst(edge_set, MlstHandler):
     # set MLST runner
     mlst_handler = MlstHandler()
 
+    """
+    draw the graph
+    you need to install igraph and py-cairo module
+    py-cairo can be installed by "sudo port install py-cairo"
+    """
+    #mlst_handler.display(edge_set)
+
     # get output
     output_edge_set = mlst_handler.find_mlst(input_edge_set=edge_set)
     return output_edge_set
