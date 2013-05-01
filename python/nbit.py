@@ -3,6 +3,7 @@
 import reader
 import util
 import graph
+from mlst import (BruteforceMLST)
 
 class CubitGenerator:
     def __init__(self, max_nodes):
@@ -106,10 +107,11 @@ if __name__ == "__main__":
     cubit_generator = CubitGenerator(3)
 
     # before
-    #edge_set = cubit_generator.edges
+    edge_set = cubit_generator.edges
     #util.display(edge_set)
 
-    # expand vertex 0 to "triplify"
+    # expand vertex 0 to "triplify" 48 times.
+    # this would create a 100 node graph
     for i in range(48):
         cubit_generator.expand(vertex=0)
 
@@ -121,15 +123,14 @@ if __name__ == "__main__":
     #util.display(edge_set)
 
     # make sure that the degree is the same
-    degree = 3
     for i in range(cubit_generator.num_vertices):
         neighbors = cubit_generator.graph.neighbors[i]
-        assert len(neighbors) == degree, "neighbors are not all 3!!"
-
-    print "Number of nodes: %d" %(cubit_generator.num_vertices)
-    print "100 node Cubit generated!!"
-
-
+        assert len(neighbors) == cubit_generator.degree, "neighbors are not all 3!!"
+    
+    # print 
+    num_nodes = cubit_generator.num_vertices
+    print "Number of nodes: %d" %(num_nodes)
+    print "%d node Cubit generated!!" %(num_nodes)
 
 
 
