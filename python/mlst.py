@@ -1,6 +1,5 @@
 import graph
 
-
 # Skeleton MLST class
 class MLST:
     """
@@ -20,35 +19,6 @@ class MLST:
         """
         raise NotImplementedError
 
-    def display(self, input_edge_set):
-        from igraph import *
-        """
-        displays a graph, given the edge set
-        """
-        g = Graph()
-
-        # format and add edges to graph
-        edges = [tuple(e.ends) for e in input_edge_set]
-        vertices = list(set([v for e in edges for v in e]))
-
-        vertex_id = {}
-        count = 0
-        for v in vertices:
-            vertex_id[v] = count
-            count += 1
-
-        try:
-            # construct graph
-            g.add_vertices(len(vertices))
-            for a, b in edges:
-                g.add_edge(vertex_id[a], vertex_id[b])
-        except:
-            #import IPython; IPython.embed() 
-            pass
-
-        # plot it
-        layout = g.layout("kk")
-        plot(g, layout = layout)
 
 class BullshitMLST(MLST):
     """

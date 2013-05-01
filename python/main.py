@@ -9,6 +9,7 @@ import shutil
 from pprint import pprint
 
 import reader
+import util
 
 from mlst import (MLST, 
         BullshitMLST,
@@ -66,47 +67,6 @@ def get_args():
     result["output_filename"] = output_file
     return result
 
-def print_error(err):
-    sys.stderr.write(err)
-
-def print_message(msg):
-    sys.stdout.write(msg)
-
-def get_input_edge_sets(infile):
-    """
-    like checker.check_input(), reads from file and returns edge_sets
-    """
-    edge_sets = None
-    try:
-        f = open(infile)
-        in_reader = reader.InFileReader(f)
-        edge_sets = in_reader.read_input_file()
-        print_message("Input file '{0}' has the correct format.\n".format(infile))
-
-    except IOError as e:
-        print_error("Error reading '{0}' ({1}).\n".format(infile, e))
-    except reader.ReaderException as e:
-        print_error("({0}) {1}\n".format(infile, e))
-
-    return edge_sets
-
-def write_output_to_file(edgesets,filename):
-    """
-    like checker.check_input(), reads from file and returns edge_sets
-    """
-    #TODO: implement this
-    #NOTE: comment out line below
-    f=open(filename,"w")
-    daINT=len(edgesets)
-    f.write(str(daINT)+"\n")
-    for edgeset in edgesets:
-        lolz=len(edgeset)
-        f.write(str(lolz)+"\n")
-        for edge in edgeset:
-            f.write(str(edge.ends[0])+" "+str(edge.ends[1])+"\n")
-    
-    
-    #raise NotImplementedError
 
 def find_mlst(edge_set, MlstHandler):
     """
@@ -124,7 +84,7 @@ def find_mlst(edge_set, MlstHandler):
     you need to install igraph and py-cairo module
     py-cairo can be installed by "sudo port install py-cairo"
     """
-    #mlst_handler.display(output_edge_set)
+    #util.display(output_edge_set)
     return output_edge_set
 
 if __name__ == "__main__":
@@ -133,13 +93,13 @@ if __name__ == "__main__":
     args = get_args()
 
     # get input edges
-    input_edge_sets = get_input_edge_sets(infile=args["input_filename"])
+    input_edge_sets = util.get_input_edge_sets(infile=args["input_filename"])
 
     output_edge_sets = []
     for edge_set in input_edge_sets:
         output_edge_sets.append(find_mlst(edge_set=edge_set, MlstHandler=BruteforceMLST))
 
     # write output to file
-    write_output_to_file(output_edge_sets,filename=args["output_filename"])
+    util.write_output_to_file(output_edge_sets,filename=args["output_filename"])
 
 
