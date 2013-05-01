@@ -97,9 +97,13 @@ def write_output_to_file(edgesets,filename):
     #TODO: implement this
     #NOTE: comment out line below
     f=open(filename,"w")
+    daINT=len(edgesets)
+    f.write(str(daINT)+"\n")
     for edgeset in edgesets:
+        lolz=len(edgeset)
+        f.write(str(lolz)+"\n")
         for edge in edgeset:
-            f.write(str(edge)+"\n")
+            f.write(str(edge.ends[0])+" "+str(edge.ends[1])+"\n")
     
     
     #raise NotImplementedError
