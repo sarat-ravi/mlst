@@ -30,11 +30,20 @@ class MLST:
         # format and add edges to graph
         edges = [tuple(e.ends) for e in input_edge_set]
         vertices = list(set([v for e in edges for v in e]))
-        #import IPython; IPython.embed() 
 
-        # construct graph
-        for v in vertices: g.add_vertices(v)
-        g.add_edges(edges)
+        vertex_id = {}
+        count = 0
+        for v in vertices:
+            vertex_id[v] = count
+            count += 1
+
+        try:
+            # construct graph
+            g.add_vertices(len(vertices))
+            for a, b in edges:
+                g.add_edge(vertex_id[a], vertex_id[b])
+        except:
+            import IPython; IPython.embed() 
 
         # plot it
         layout = g.layout("kk")
