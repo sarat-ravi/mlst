@@ -97,6 +97,17 @@ def write_output_to_file(outfile):
     #NOTE: comment out line below
     raise NotImplementedError
 
+def find_mlst(edge_set, MlstHandler):
+    """
+    takes an edge_set, and returns result_edge_set
+    """
+    # set MLST runner
+    mlst_handler = MlstHandler()
+
+    # get output
+    output_edge_set = mlst_handler.find_mlst(input_edge_set=edge_set)
+    return output_edge_set
+
 if __name__ == "__main__":
 
     # create file objs from command line args
@@ -105,11 +116,9 @@ if __name__ == "__main__":
     # get input edges
     input_edge_sets = get_input_edge_sets(infile=args["input_filename"])
 
-    # set MLST runner
-    mlst_handler = BullshitMLST()
-
-    # get output
-    output_edge_sets = mlst_handler.find_mlst(input_edge_sets=input_edge_sets)
+    output_edge_sets = []
+    for edge_set in input_edge_sets:
+        output_edge_sets.append(find_mlst(edge_set=edge_set, MlstHandler=BullshitMLST))
 
     # write output to file
     write_output_to_file(outfile=args["output_filename"])

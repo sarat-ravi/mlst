@@ -13,7 +13,7 @@ class MLST:
         """
         pass
 
-    def find_mlst(self, input_edge_sets):
+    def find_mlst(self, input_edge_set):
         """
         This is the main function that takes input edge_sets, and does magic
         to it to solve the problem
@@ -29,8 +29,13 @@ class BullshitMLST(MLST):
         self.param_a = fuck
         self.param_b = you
 
-    def find_mlst(self, input_edge_sets):
+    def find_mlst(self, input_edge_set):
         """
         fuck you
         """
-        return input_edge_sets
+
+        # install ipython, and you get to use this amazing tool
+        # it goes into interactive shell mode, where you can tab-complete
+        #import IPython; IPython.embed() 
+
+        return input_edge_set
