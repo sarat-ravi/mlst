@@ -14,6 +14,9 @@ class Edge:
     def __str__(self):
         return '({0},{1})'.format(self.ends[0], self.ends[1])
 
+    def __repr__(self):
+        return '({0},{1})'.format(self.ends[0], self.ends[1])
+
     def __hash__(self):
         return self.ends[0] * config.MAX_NUM_NODES + self.ends[1]
 
