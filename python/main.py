@@ -90,13 +90,19 @@ def get_input_edge_sets(infile):
 
     return edge_sets
 
-def write_output_to_file(outfile):
+def write_output_to_file(edgesets,filename):
     """
     like checker.check_input(), reads from file and returns edge_sets
     """
     #TODO: implement this
     #NOTE: comment out line below
-    raise NotImplementedError
+    f=open(filename,"w")
+    for edgeset in edgesets:
+        for edge in edgeset:
+            f.write(str(edge)+"\n")
+    
+    
+    #raise NotImplementedError
 
 def find_mlst(edge_set, MlstHandler):
     """
@@ -130,6 +136,6 @@ if __name__ == "__main__":
         output_edge_sets.append(find_mlst(edge_set=edge_set, MlstHandler=BruteforceMLST))
 
     # write output to file
-    write_output_to_file(outfile=args["output_filename"])
+    write_output_to_file(output_edge_sets,filename=args["output_filename"])
 
 
