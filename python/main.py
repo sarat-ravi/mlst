@@ -12,6 +12,7 @@ import reader
 
 from mlst import (MLST, 
         BullshitMLST,
+        BruteforceMLST,
         )
 
 """
@@ -104,15 +105,16 @@ def find_mlst(edge_set, MlstHandler):
     # set MLST runner
     mlst_handler = MlstHandler()
 
+
+    # get output
+    output_edge_set = mlst_handler.find_mlst(input_edge_set=edge_set)
+
     """
     draw the graph
     you need to install igraph and py-cairo module
     py-cairo can be installed by "sudo port install py-cairo"
     """
-    mlst_handler.display(edge_set)
-
-    # get output
-    output_edge_set = mlst_handler.find_mlst(input_edge_set=edge_set)
+    #mlst_handler.display(output_edge_set)
     return output_edge_set
 
 if __name__ == "__main__":
@@ -125,7 +127,7 @@ if __name__ == "__main__":
 
     output_edge_sets = []
     for edge_set in input_edge_sets:
-        output_edge_sets.append(find_mlst(edge_set=edge_set, MlstHandler=BullshitMLST))
+        output_edge_sets.append(find_mlst(edge_set=edge_set, MlstHandler=BruteforceMLST))
 
     # write output to file
     write_output_to_file(outfile=args["output_filename"])

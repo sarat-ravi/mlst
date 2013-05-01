@@ -43,7 +43,8 @@ class MLST:
             for a, b in edges:
                 g.add_edge(vertex_id[a], vertex_id[b])
         except:
-            import IPython; IPython.embed() 
+            #import IPython; IPython.embed() 
+            pass
 
         # plot it
         layout = g.layout("kk")
@@ -67,3 +68,45 @@ class BullshitMLST(MLST):
         #import IPython; IPython.embed() 
 
         return input_edge_set
+
+class BruteforceMLST(MLST):
+    """
+    This is an example
+    """
+    def get_edge_permutation(self, edges):
+        """
+        returns all possible subsets of edges
+        """
+        import itertools
+        for i in range(len(edges)):
+            combos = itertools.combinations(edges, i+1)
+            for s in combos: yield set(s)
+
+    def find_mlst(self, input_edge_set):
+        """
+        This tries every subset of <input_edge_set>
+        """
+        #-------------------------------------------------------------
+        best_leaves = 0
+        best_edge_set = set()
+
+        for edge_set in self.get_edge_permutation(input_edge_set):
+
+            g = graph.make_graph(edge_set)
+            g.search()
+
+            if g.num_of_components == 1 and g.num_leaves > best_leaves:
+                best_leaves = g.num_leaves
+                best_edge_set = edge_set
+
+        #-------------------------------------------------------------
+        return best_edge_set
+
+
+
+
+
+
+
+
+
