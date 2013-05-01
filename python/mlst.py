@@ -1,4 +1,5 @@
 import graph
+from nbit import *
 
 # Skeleton MLST class
 class MLST:
@@ -35,7 +36,7 @@ class BullshitMLST(MLST):
 
         # install ipython, and you get to use this amazing tool
         # it goes into interactive shell mode, where you can tab-complete
-        #import IPython; IPython.embed() 
+        #import IPython; IPython.embed()
 
         return input_edge_set
 
@@ -50,7 +51,8 @@ class BruteforceMLST(MLST):
         import itertools
         for i in range(len(edges)):
             combos = itertools.combinations(edges, i+1)
-            for s in combos: yield set(s)
+            for s in combos:
+                yield set(s)
 
     def find_mlst(self, input_edge_set):
         """
@@ -60,7 +62,10 @@ class BruteforceMLST(MLST):
         best_leaves = 0
         best_edge_set = set()
 
+        i = 0
+        print "finding mlst"
         for edge_set in self.get_edge_permutation(input_edge_set):
+            print "iteration %d" % i
 
             g = graph.make_graph(edge_set)
             g.search()
@@ -69,8 +74,32 @@ class BruteforceMLST(MLST):
                 best_leaves = g.num_leaves
                 best_edge_set = edge_set
 
+            i += 1
+
         #-------------------------------------------------------------
         return best_edge_set
+
+if __name__ == "__main__":
+    cubit_generator = CubitGenerator(3)
+    # expand vertex 0 to "triplify" 48 times.
+    # this would create a 100 node graph
+    for i in range(48):
+        cubit_generator.expand(vertex=0)
+
+    # make sure stale data gets deleted
+    cubit_generator.update_graph()
+
+    # after
+    edge_set = cubit_generator.edges
+
+    Brute = BruteforceMLST()
+
+    mlst = Brute.find_mlst(edge_set)
+
+    print "Found mlst %s!" % str(mlst)
+    g = graph.make_graph(mlst)
+    g.search()
+    print "Found %d leaves!" % g.num_leaves
 
 
 
