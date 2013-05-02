@@ -64,7 +64,6 @@ def display(input_edge_set):
 
     # name the vertices
     g.vs["name"] = [v for v in vertex_id.keys()]
-    print g.vs["name"]
 
     # plot it
     layout = g.layout("kk")

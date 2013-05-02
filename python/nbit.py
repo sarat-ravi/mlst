@@ -1,17 +1,20 @@
 #!/usr/bin/env python
+import sys
+import os
+import getopt
 
 import reader
 import util
 import graph
 from mlst import (BruteforceMLST)
 
-class CubitGenerator:
-    def __init__(self, max_nodes):
-        self.degree = 3
+class NbitGenerator:
+    def __init__(self, max_nodes, degree):
+        self.degree = degree
         self.max_nodes = max_nodes
 
         # initialize edges to be the "base cubit"
-        self.edges = [
+        self.base_edges = [
                 graph.Edge(0, 1),
                 graph.Edge(0, 2),
                 graph.Edge(0, 3),
@@ -19,9 +22,13 @@ class CubitGenerator:
                 graph.Edge(1, 3),
                 graph.Edge(2, 3)
                 ]
-        self.edges = set(self.edges)
+        self.base_edges = set(self.base_edges)
+        self.edges = self.base_edges.copy()
 
-        self.num_vertices = 4
+        initial_num_vertices = 4
+
+        self.initial_num_vertices = initial_num_vertices 
+        self.num_vertices = initial_num_vertices
 
         self.graph = graph.make_graph(self.edges)
         self.graph.search()
@@ -102,38 +109,92 @@ class CubitGenerator:
 
         #import IPython; IPython.embed()
 
-if __name__ == "__main__":
+    def generate_graph(self):
+        """
+        The main function, generates the edge_set for an n-bit, k-node graph
+        """
+        # see how many times we have to call expand
+        num_expand_iterations = (self.max_nodes - self.initial_num_vertices) / (self.degree - 1)
 
-    cubit_generator = CubitGenerator(3)
+        # call expand that many times, expanding a node into degree - 1 new nodes + this node
+        for i in range(num_expand_iterations):
+            self.expand(vertex=0)
+
+        # in case the graph is stale, update it once more
+        self.update_graph()
+        return self.edges
+
+def get_args():
+    def usage():
+        print "Command Line Interface for Nbit Graph Generator\n"
+        print "SAMPLE USAGE: ./nbit.py <outfile>"
+        print "Ex: ./nbit.py blah.out\n"
+        print ""
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
+        output_file = args[0] 
+    except:
+        usage()
+        exit()
+
+    # parse cli args
+    for o,a in opts:
+        if o in ("-h", "--help"):
+            usage()
+            exit()
+
+    # check validity
+    output_dirname = os.path.dirname(output_file)
+    if output_dirname == '': output_dirname = "."
+    assert os.path.exists(output_dirname), "Output Directory %s doesn't exist" %(str(input_file))
+
+    # return final result
+    result = {}
+    result["output_filename"] = output_file
+    return result
+
+def generate_nbit_graph(nbit_generator):
 
     # before
-    edge_set = cubit_generator.edges
+    base_edge_set = nbit_generator.base_edges
     #util.display(edge_set)
 
-    # expand vertex 0 to "triplify" 48 times.
-    # this would create a 100 node graph
-    for i in range(48):
-        cubit_generator.expand(vertex=0)
-
-    # make sure stale data gets deleted
-    cubit_generator.update_graph()
-
-    # after
-    edge_set = cubit_generator.edges
+    # generates 
+    edge_set = nbit_generator.generate_graph()
     #util.display(edge_set)
 
     # make sure that the degree is the same
-    for i in range(cubit_generator.num_vertices):
-        neighbors = cubit_generator.graph.neighbors[i]
-        assert len(neighbors) == cubit_generator.degree, "neighbors are not all 3!!"
+    for i in range(nbit_generator.num_vertices):
+        neighbors = nbit_generator.graph.neighbors[i]
+        assert len(neighbors) == nbit_generator.degree, "neighbors are not all %d!!" %(nbit_generator.degree)
     
     # print 
-    num_nodes = cubit_generator.num_vertices
+    num_nodes = nbit_generator.num_vertices
+
+    print "Graph Stats:"
+    print "------------------------------------------------"
     print "Number of nodes: %d" %(num_nodes)
-    print "%d node Cubit generated!!" %(num_nodes)
+    print "%d node %d-bit Graph Generated" %(num_nodes, nbit_generator.degree)
+    print "------------------------------------------------\n"
 
+    return edge_set
 
+if __name__ == "__main__":
 
+    # get cli args
+    args = get_args()
+    output_filename = args["output_filename"]
 
-        
+    # graphs to generate
+    nbit_generators = [
+            NbitGenerator(max_nodes=10, degree=3),
+            NbitGenerator(max_nodes=100, degree=3),
+            ]
+
+    # write edge sets to file
+    edge_sets = map(generate_nbit_graph, nbit_generators)
+    util.write_output_to_file(edge_sets, output_filename)
+    print "Edge Sets written to file '%s'" %(str(output_filename))
+
 
