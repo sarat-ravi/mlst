@@ -1,4 +1,5 @@
 import graph
+import time
 
 # Skeleton MLST class
 class MLST:
@@ -35,7 +36,7 @@ class BullshitMLST(MLST):
 
         # install ipython, and you get to use this amazing tool
         # it goes into interactive shell mode, where you can tab-complete
-        #import IPython; IPython.embed() 
+        #import IPython; IPython.embed()
 
         return input_edge_set
 
@@ -72,11 +73,90 @@ class BruteforceMLST(MLST):
         #-------------------------------------------------------------
         return best_edge_set
 
+class SearchMLST(MLST):
+    def generate_successors(self, input_edge_set):
+        """
+        Generate sucessor with only one node deleted
+        """
+        import itertools
+        edge_list = list(input_edge_set)
+        combos = itertools.combinations(input_edge_set, len(input_edge_set)-1)
+        for s in combos: yield set(s)
 
+    def find_mlst(self, input_edge_set):
+        """
+        BFS search to find an mlst
+        """
+        best_leaves = 0
+        best_edge_set = set()
+        closed = set()
+        fringe = list()
+        g = graph.make_graph(input_edge_set)
+        g.search()
+        num_nodes = g.num_nodes
 
+        fringe.append(input_edge_set)
 
+        while len(fringe) > 0: # list is not empty
+            edge_set_node = fringe.pop()
 
+            #== goal state ==#
+            g = graph.make_graph(edge_set_node)
+            g.search()
 
+            if g.edges_in_one_component() and not g.has_cycle:
+                if g.num_leaves > best_leaves:
+                    best_leaves = g.num_leaves
+                    best_edge_set =  edge_set_node
 
+            #== expansion ==#
 
+            edge_tuple = tuple( edge.__hash__()  for edge in edge_set_node )
+            if edge_tuple not in closed:
+                closed.add(edge_tuple)
+                if len(edge_set_node) + 1 >= num_nodes: #if spanning tree is possible
+                    for child in self.generate_successors(edge_set_node):
+                        fringe.insert(0, child)
+        return best_edge_set
 
+class Timer:
+    def __init__(self):
+        self.start = time.time()
+        self.elapsed = None
+    def end(self):
+        self.elapsed = time.time() -  self.start
+        return self.elapsed
+    def reset(self):
+        self.start = time.time()
+        self.elapsed = None
+
+if __name__ == "__main__":
+
+    import nbit
+    CubitGenerator = nbit.CubitGenerator
+    cubit_generator = CubitGenerator(3)
+    # expand vertex 0 to "triplify" 48 times.
+    # this would create a 100 node graph
+    for i in range(3):
+        cubit_generator.expand(vertex=0)
+
+    timer = Timer()
+    edge_set = cubit_generator.edges
+    Brute = BruteforceMLST()
+
+    mlst = Brute.find_mlst(edge_set)
+    print "Found mlst %s!" % str(mlst)
+    g = graph.make_graph(mlst)
+    g.search()
+    print "Found %d leaves!" % g.num_leaves
+
+    print timer.end()
+
+    timer.reset()
+    Search = SearchMLST()
+    mlst = Search.find_mlst(edge_set)
+    print "Found mlst %s!" % str(mlst)
+    g = graph.make_graph(mlst)
+    g.search()
+    print "Found %d leaves!" % g.num_leaves
+    print timer.end()
