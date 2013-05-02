@@ -14,24 +14,30 @@ class NbitGenerator:
         self.max_nodes = max_nodes
 
         # initialize edges to be the "base cubit"
-        self.base_edges = [
-                graph.Edge(0, 1),
-                graph.Edge(0, 2),
-                graph.Edge(0, 3),
-                graph.Edge(1, 2),
-                graph.Edge(1, 3),
-                graph.Edge(2, 3)
-                ]
-        self.base_edges = set(self.base_edges)
+        self.base_edges = set()
+        self.get_base_edges()
+
         self.edges = self.base_edges.copy()
 
-        initial_num_vertices = 4
-
-        self.initial_num_vertices = initial_num_vertices 
-        self.num_vertices = initial_num_vertices
+        self.num_vertices = self.degree + 1 
 
         self.graph = graph.make_graph(self.edges)
         self.graph.search()
+
+    def get_base_edges(self):
+        """
+        create the base graph
+        """
+
+        vertices = range(self.degree + 1)
+
+        for i in vertices:
+            for j in vertices:
+                if i == j: continue
+
+                edge = graph.Edge(i, j)
+                if not edge in self.base_edges:
+                    self.base_edges.add(edge)
 
     def get_touching_edges(self, vertex, neighbors):
         """
@@ -97,11 +103,18 @@ class NbitGenerator:
             new_edge = graph.Edge(new_vertex, vertex)
             self.edges.add(new_edge)
 
-        # TODO: make this more generic
-        another_edge = graph.Edge(vertices_to_add[0], vertices_to_add[1])
-        self.edges.add(another_edge)
-
         modified_edges = self.replace(vertex, edges_to_modify, vertices_to_add)
+
+        # connect all the new vertices together
+        temp = vertices_to_add + [vertex]
+        for i in vertices_to_add:
+            for j in vertices_to_add:
+                if i == j: continue
+                new_edge = graph.Edge(i, j)
+                if not new_edge in self.edges: self.edges.add(new_edge)
+
+        #another_edge = graph.Edge(vertices_to_add[0], vertices_to_add[1])
+        #self.edges.add(another_edge)
 
         # add it back to set
         for edge in modified_edges:
@@ -114,7 +127,7 @@ class NbitGenerator:
         The main function, generates the edge_set for an n-bit, k-node graph
         """
         # see how many times we have to call expand
-        num_expand_iterations = (self.max_nodes - self.initial_num_vertices) / (self.degree - 1)
+        num_expand_iterations = (self.max_nodes - (self.degree + 1)) / (self.degree - 1)
 
         # call expand that many times, expanding a node into degree - 1 new nodes + this node
         for i in range(num_expand_iterations):
@@ -158,7 +171,7 @@ def generate_nbit_graph(nbit_generator):
 
     # before
     base_edge_set = nbit_generator.base_edges
-    #util.display(edge_set)
+    #util.display(base_edge_set)
 
     # generates 
     edge_set = nbit_generator.generate_graph()
@@ -171,30 +184,89 @@ def generate_nbit_graph(nbit_generator):
     
     # print 
     num_nodes = nbit_generator.num_vertices
+    num_edges = len(nbit_generator.edges)
 
-    print "Graph Stats:"
-    print "------------------------------------------------"
-    print "Number of nodes: %d" %(num_nodes)
-    print "%d node %d-bit Graph Generated" %(num_nodes, nbit_generator.degree)
-    print "------------------------------------------------\n"
 
-    return edge_set
+    return edge_set, num_nodes, num_edges
+
+def experiment():
+
+    best_nodes = 0
+    best_nodes_stats = None
+
+    best_edges = 0
+    best_edges_stats = None
+
+    best_score = -10000000
+    best_stats = None
+
+    def score(nodes, edges, degree):
+        if edges > 2000: return 0
+        return nodes/50.0 + edges/2000.0 - degree/1000.0
+
+        n = (0.2) * nodes
+        e = (0.0005) * edges
+        d = -0.5 * degree
+
+        return n + e + d
+
+    for i in range(3,100):
+        nbg = NbitGenerator(100, i)
+        eset, nodes, edges = generate_nbit_graph(nbg) 
+
+        if nodes > best_nodes:
+            best_nodes = nodes
+            best_nodes_stats = eset, nodes, edges, i
+
+        if edges > best_edges and edges <= 2000:
+            best_edges = edges
+            best_edges_stats = eset, nodes, edges, i
+
+        if score(nodes, edges, i) > best_score:
+            best_score = score(nodes, edges, i)
+            best_stats = eset, nodes, edges, i
+
+    print "\n\nExperiment Results: (<num_nodes>, <num_edges>, <degree>)"
+    print "----------------------------------------------------------------"
+    print "Num Nodes Winner: %s" %(str(best_nodes_stats[1:]))
+    print "Num Edges Winner: %s" %(str(best_edges_stats[1:]))
+    print "Overall Winner: %s" %(str(best_stats[1:]))
+    print "----------------------------------------------------------------"
+
 
 if __name__ == "__main__":
 
     # get cli args
     args = get_args()
     output_filename = args["output_filename"]
+    # -----------------------------------------------------------------------
 
+    """
+    NOTE: Modify this list to add/remove/change generators
+    """
     # graphs to generate
     nbit_generators = [
-            NbitGenerator(max_nodes=10, degree=3),
+            NbitGenerator(max_nodes=100, degree=20),
             NbitGenerator(max_nodes=100, degree=3),
             ]
 
+    # -----------------------------------------------------------------------
     # write edge sets to file
-    edge_sets = map(generate_nbit_graph, nbit_generators)
+    #edge_sets = map(generate_nbit_graph, nbit_generators)
+    edge_sets = []
+    for nbit_generator in nbit_generators:
+        eset, num_nodes, num_edges = generate_nbit_graph(nbit_generator)
+        print "Graph Stats:"
+        print "------------------------------------------------"
+        print "Number of nodes: %d" %(num_nodes)
+        print "Number of edges: %d" %(num_edges)
+        print "%d node %d-bit Graph Generated" %(num_nodes, nbit_generator.degree)
+        print "------------------------------------------------\n"
+        edge_sets.append(eset)
+
     util.write_output_to_file(edge_sets, output_filename)
     print "Edge Sets written to file '%s'" %(str(output_filename))
+
+    experiment()
 
 
