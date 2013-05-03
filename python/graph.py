@@ -89,3 +89,11 @@ class Graph:
                 if not visited[i]:
                     self.num_of_components += 1
                     dfs(i, -1)
+    def get_edge_set(self):
+        edge_set = set()
+        for vertex, neighbors in enumerate(self.neighbors):
+            for neighbor in neighbors:
+               edge = Edge( vertex, neighbor )
+               if edge not in edge_set:
+                   edge_set.add( edge )
+        return edge_set
