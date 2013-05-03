@@ -76,12 +76,14 @@ class disjointSets():
         self.mappings = dict(zip(lst,range(len(lst))))
         self.sizes = [1 for i in range(len(lst))]
         self.items = lst[:]
+        
     def find(self,item):
         ind = self.mappings[item]
         while ind != self.mappings[self.items[ind]]:
             self.mappings[self.items[ind]] = self.mappings[self.items[self.mappings[self.items[ind]]]]
             ind = self.mappings[self.items[ind]]
         return self.items[ind]
+        
     def size(self,item):
         return self.sizes[self.mappings[self.find(item)]]
 
@@ -91,6 +93,7 @@ class disjointSets():
         bigParent,littleParent = self.find(big), self.find(little)
         self.mappings[littleParent] = self.mappings[bigParent]
         self.sizes[self.mappings[bigParent]] += littleSize
+        
     def display(self):
         print"==============="
         print "MAPPINGS: ", self.mappings
