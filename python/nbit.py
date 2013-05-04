@@ -6,7 +6,7 @@ import getopt
 import reader
 import util
 import graph
-from mlst import (BruteforceMLST)
+#from mlst import (BruteforceMLST)
 
 class NbitGenerator:
     def __init__(self, max_nodes, degree):
@@ -246,8 +246,8 @@ if __name__ == "__main__":
     """
     # graphs to generate
     nbit_generators = [
-            NbitGenerator(max_nodes=100, degree=20),
-            NbitGenerator(max_nodes=100, degree=3),
+            #NbitGenerator(max_nodes=100, degree=20),
+            NbitGenerator(max_nodes=15, degree=3),
             ]
 
     # -----------------------------------------------------------------------

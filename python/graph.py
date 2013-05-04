@@ -47,6 +47,8 @@ def make_graph(edge_set):
 class Graph:
     def __init__(self, numNodes):
         self.neighbors = [ [] for i in range(config.MAX_NUM_NODES) ]
+        self.degrees = [0 for i in range(config.MAX_NUM_NODES)]
+        self.edges = []
         self.num_of_components = 0
         self.num_nodes = 0
         self.num_leaves = 0
@@ -54,12 +56,14 @@ class Graph:
 
     def add_edge(self, e):
         self.add_edge_uv(e.ends[0], e.ends[1])
+        self.edges.append([e.ends[0],e.ends[1]])
 
     def add_edge_uv(self, u, v):
         self.add_directed_edge_uv(u, v)
         self.add_directed_edge_uv(v, u)
 
     def add_directed_edge_uv(self, u, v):
+        self.degrees[u] += 1
         self.neighbors[u].append(v)
 
     def edges_in_one_component(self):
@@ -89,6 +93,7 @@ class Graph:
                 if not visited[i]:
                     self.num_of_components += 1
                     dfs(i, -1)
+                    
     def get_edge_set(self):
         edge_set = set()
         for vertex, neighbors in enumerate(self.neighbors):

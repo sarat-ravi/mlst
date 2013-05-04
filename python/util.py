@@ -74,8 +74,10 @@ def display(input_edge_set):
 class disjointSets():
     def __init__(self,lst):
         self.mappings = dict(zip(lst,range(len(lst))))
-        self.sizes = [1 for i in range(len(lst))]
+        self.sizes = [1 for item in lst]
         self.items = lst[:]
+        self.sets = [[item] for item in lst]
+        self.numSets = len(lst)
         
     def find(self,item):
         ind = self.mappings[item]
@@ -87,13 +89,25 @@ class disjointSets():
     def size(self,item):
         return self.sizes[self.mappings[self.find(item)]]
 
+    def addSet(self,identifier):
+        self.mappings[identifier] = len(self.items)
+        self.sizes.append(1)
+        self.items.append(identifier)
+        self.sets.append([identifier])
+    
     def union(self,a,b):
         (big, little) = (a,b) if self.size(a) > self.size(b) else (b,a)
         littleSize = self.size(little)
         bigParent,littleParent = self.find(big), self.find(little)
+        assert bigParent != littleParent, "bigParent = littleParent = %d" % bigParent
+        self.sets[self.mappings[bigParent]] += self.sets[self.mappings[littleParent]]
         self.mappings[littleParent] = self.mappings[bigParent]
         self.sizes[self.mappings[bigParent]] += littleSize
-        
+        self.numSets -= 1
+
+    def getSet(self, item):
+        return self.sets[self.mappings[self.find(item)]]
+
     def display(self):
         print"==============="
         print "MAPPINGS: ", self.mappings
