@@ -85,7 +85,7 @@ class ConstantTimeMLST(MLST):
     It actually returns the solution before it even gets called. 
     That's how fucking fast it is.
     """
-    def connect_forest(self, input_graph, leafyForest, vertexSets, degrees):
+    def connect_forest(self, input_graph, leafyForest, vertex_sets, degrees):
         """
         connects different trees in the forest together and 
         returns the giant resulting tree
@@ -95,72 +95,114 @@ class ConstantTimeMLST(MLST):
         nonideal_scores = (1,0)
 
         # while there is more than one tree in forest,
-        while vertexSets.numSets > 1:
+        while vertex_sets.numSets > 1:
 
             goodEdges = {0:[],1:[],2:[],3:[]}
 
             # bin "Bridge" edges by scores
             for edge in input_graph.edges:
                 # if the edge goes from one tree to another,
-                if vertexSets.find(edge[0]) != vertexSets.find(edge[1]):
+                if vertex_sets.find(edge[0]) != vertex_sets.find(edge[1]):
                     scr = self.score(edge,degrees)
                     goodEdges[scr].append(edge)
 
             # Add all the ideal edges if we can
             for score in ideal_scores:
                 for edge in goodEdges[score]:  #first, try to add every edge which, when added, keeps all leaves
-                    if vertexSets.find(edge[0]) != vertexSets.find(edge[1]):
+                    if vertex_sets.find(edge[0]) != vertex_sets.find(edge[1]):
                         leafyForest.add(Edge(edge[0],edge[1]))
-                        vertexSets.union(edge[0],edge[1])
+                        vertex_sets.union(edge[0],edge[1])
 
             # Try to grudgingly add nonideal edge, and
-            # DIE OF SHAME if added
+            # DIE OF SHAME once added
             added_nonideal_edge = False
             for score in nonideal_scores:  #count down by score
                 for edge in goodEdges[score]:
                     if not added_nonideal_edge:   # 
                         leafyForest.add(Edge(edge[0],edge[1]))
-                        vertexSets.union(edge[0],edge[1])
+                        vertex_sets.union(edge[0],edge[1])
                         added_nonideal_edge = True
                     else: break
 
         return set(leafyForest)
 
     def find_mlst(self, edge_set):
+        """
+        Returns an output_edge_set that represents the MLST
+        -----------------------------------------------------------
+        1.  Finds forest from edge_set, 
+
+        2.  Connects the forests, and
+
+        3.  Incrementally adds the remaining unused edges to
+            to the original graph greedily
+        -----------------------------------------------------------
+        """
         # make graph from edge set
         input_graph = graph.make_graph(edge_set)
         input_graph.search()
 
-        # get forest from graph
-        leafy_forest, vertex_sets, degrees = self.find_leafyForest(input_graph)
+        # 1. Get forest from graph
+        leafy_forest, vertex_sets, degrees = self.find_leafy_forest(input_graph)
 
-        # connect the forest
+        # 2. Connect the forest
         output_edge_set = self.connect_forest(input_graph, leafy_forest, vertex_sets, degrees)
+        remaining_edges = edge_set.difference(output_edge_set)
 
-
+        # 3. Incrementally update
+        output_edge_set = self.incrementally_update(output_edge_set)
 
         return output_edge_set
 
+    def incrementally_update(self, output_edge_set):
+        """
+        Adds remaining_edges one by one if adding it improves
+        the num leaves while making sure the output_edge_set
+        still represents an MLST
+        """
+        # TODO: actually implement this
+        # ------------------------------------------------------
+
+
+        # ------------------------------------------------------
+        return output_edge_set
             
-    def find_leafyForest(self, input_graph):
-        vertexSets = util.disjointSets(range(input_graph.num_nodes))
-        d = [0] * input_graph.num_nodes
-        F = []
+    def find_leafy_forest(self, input_graph):
+        """
+        Given Graph, connects a bunch of forests
+        Returns:
+        -------------------------------------------------------------------------
+        forest_edge_set     ==> This will be the set of all edges that make the forest
+
+        vertex_sets         ==> Represents disjoint sets that represent the forest.
+                                i.e each tree in forest belongs to a disjoint set
+
+        degree              ==> contains a mapping from vertex --> its degree
+                                degree[k] is vertex k's degree
+        -------------------------------------------------------------------------
+        """
+
+        # init variables
+        vertex_sets = util.disjointSets(range(input_graph.num_nodes))
+        degree = [0] * input_graph.num_nodes
+        forest_edge_set = set()
+
         for v in range(input_graph.num_nodes):
             S_prime = ([],[])
             d_prime = 0
             for u in input_graph.neighbors[v]:
-                if vertexSets.find(u) != vertexSets.find(v) and vertexSets.find(u) not in S_prime[1]:
+                if vertex_sets.find(u) != vertex_sets.find(v) and vertex_sets.find(u) not in S_prime[1]:
                     d_prime += 1
                     S_prime[0].append(u)
-                    S_prime[1].append(vertexSets.find(u))
-            if d[v] + d_prime >= 3:
+                    S_prime[1].append(vertex_sets.find(u))
+            if degree[v] + d_prime >= 3:
                 for u in S_prime[0]:
-                    F.append(Edge(u,v))
-                    vertexSets.union(u,v)
-                    d[u] += 1
-                    d[v] += 1
-        return set(F), vertexSets, d
+                    forest_edge_set.add(Edge(u,v))
+                    vertex_sets.union(u,v)
+                    degree[u] += 1
+                    degree[v] += 1
+
+        return forest_edge_set, vertex_sets, degree
 
     def score(self,edge,degrees):
         """
@@ -182,7 +224,6 @@ class ConstantTimeMLST(MLST):
         """
         scr = 0
 
-
         # Case 1: when edge connects a FAT node to a singleton
         # This edge can definitely be added because the FAT node
         # cant be a leaf anyways, and the singleton becomes a leaf
@@ -194,7 +235,6 @@ class ConstantTimeMLST(MLST):
         # Higher degree = higher score
         if degrees[edge[0]] > 1: scr += 1
         if degrees[edge[1]] > 1: scr += 1
-
         return scr
     
 def experiment(edge_set, mlst_handler, experiment_name="Experiment:", experiment_desc=None, display=False):
@@ -269,7 +309,7 @@ if __name__ == "__main__":
     nbit_generator = nbit.NbitGenerator(100,3)
     edgeSet = nbit_generator.generate_graph()
     stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
-            experiment_name="Experiment 4: Cubic Graph Fun", 
+            experiment_name="Experiment 4: Nbic Graph Fun", 
             display=False)
     # ---------------------------------------------------------------------------------------
 
