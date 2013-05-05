@@ -126,7 +126,7 @@ class ConstantTimeMLST(MLST):
 
         return set(leafyForest)
 
-    def find_mlst(self, edge_set):
+    def find_mlst(self, edge_set, branch_threshold=3):
         """
         Returns an output_edge_set that represents the MLST
         -----------------------------------------------------------
@@ -143,31 +143,45 @@ class ConstantTimeMLST(MLST):
         input_graph.search()
 
         # 1. Get forest from graph
-        leafy_forest, vertex_sets, degrees = self.find_leafy_forest(input_graph)
+        leafy_forest, vertex_sets, degrees = self.find_leafy_forest(input_graph, branch_threshold)
 
         # 2. Connect the forest
         output_edge_set = self.connect_forest(input_graph, leafy_forest, vertex_sets, degrees)
         remaining_edges = edge_set.difference(output_edge_set)
 
         # 3. Incrementally update
-        output_edge_set = self.incrementally_update(output_edge_set)
+        output_edge_set = self.incrementally_update(output_edge_set, remaining_edges)
 
         return output_edge_set
 
-    def incrementally_update(self, output_edge_set):
+    def could_be_mlst(self, edge_set):
+        """
+        returns if edge_set could be MLST
+        """
+        input_graph = graph.make_graph(edge_set)
+        input_graph.search()
+
+        result = input_graph.num_of_components == 1
+        result = result and not input_graph.has_cycle
+
+        if result: return input_graph.num_leaves
+        return False
+
+    def incrementally_update(self, edge_set, remaining_edge_set):
         """
         Adds remaining_edges one by one if adding it improves
         the num leaves while making sure the output_edge_set
         still represents an MLST
         """
-        # TODO: actually implement this
+
+        # TODO: actually implement this. 
+        # NOTE: Actually, fuck it
         # ------------------------------------------------------
-
-
+        output_edge_set = edge_set
         # ------------------------------------------------------
         return output_edge_set
             
-    def find_leafy_forest(self, input_graph):
+    def find_leafy_forest(self, input_graph, branch_threshold=3):
         """
         Given Graph, connects a bunch of forests
         Returns:
@@ -187,6 +201,10 @@ class ConstantTimeMLST(MLST):
         degree = [0] * input_graph.num_nodes
         forest_edge_set = set()
 
+        #graph_stats = input_graph.stats()
+        #branch_threshold = graph_stats["average_degree"]
+        #print "branch_threshold: %s" %(str(branch_threshold))
+
         for v in range(input_graph.num_nodes):
             S_prime = ([],[])
             d_prime = 0
@@ -195,7 +213,7 @@ class ConstantTimeMLST(MLST):
                     d_prime += 1
                     S_prime[0].append(u)
                     S_prime[1].append(vertex_sets.find(u))
-            if degree[v] + d_prime >= 3:
+            if degree[v] + d_prime >= branch_threshold:
                 for u in S_prime[0]:
                     forest_edge_set.add(Edge(u,v))
                     vertex_sets.union(u,v)
@@ -249,7 +267,14 @@ def experiment(edge_set, mlst_handler, experiment_name="Experiment:", experiment
     output_edge_set = mlst_handler.find_mlst(edge_set)
 
     print "--------------------------------------------------------------"
+
     etime = time.time(); duration = int((etime - stime) * 1000)
+    output_graph = graph.make_graph(output_edge_set)
+    output_graph.search()
+    stats = output_graph.stats()
+
+    print ">>> Average Degree: %s" %(str(stats["average_degree"]))
+    print ">>> Number of Leaves: %s" %(str(output_graph.num_leaves))
     print "<<< Time Elapsed: %d ms" %(duration)
     print "\n"
 

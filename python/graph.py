@@ -54,6 +54,13 @@ class Graph:
         self.num_leaves = 0
         self.has_cycle = False
 
+    def stats(self):
+        mean = float(sum(self.degrees))/len(self.degrees)
+
+        stats = {}
+        stats["average_degree"] = mean
+        return stats
+
     def add_edge(self, e):
         self.add_edge_uv(e.ends[0], e.ends[1])
         self.edges.append([e.ends[0],e.ends[1]])
