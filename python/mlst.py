@@ -1,7 +1,9 @@
+#!/usr/bin/env python
 import graph
 from graph import Edge
 import nbit
 import util
+import time
 
 # Skeleton MLST class
 class MLST:
@@ -87,6 +89,7 @@ class ConstantTimeMLST(MLST):
         input_graph = graph.make_graph(edge_set)
         input_graph.search()
         leafyForest, vertexSets, degrees = self.find_leafyForest(input_graph)
+
         ideal_scores = (3,2)
         nonideal_scores = (1,0)
         while vertexSets.numSets > 1:
@@ -109,7 +112,6 @@ class ConstantTimeMLST(MLST):
                         added_nonideal_edge = True
                     else: break
         return set(leafyForest)
-        
         
     def score(self,edge,degrees):
         scr = 0
@@ -145,35 +147,80 @@ class ConstantTimeMLST(MLST):
                     d[v] += 1
         return F, vertexSets, d
     
-    
+def experiment(edge_set, mlst_handler, experiment_name="Experiment:", experiment_desc=None, display=False):
+    """
+    Runs the experiment with a given handler and edge set
+    """
+
+    # run the experiment
+    print ">>> %s" %(str(experiment_name)); stime = time.time()
+    print "--------------------------------------------------------------"
+
+    output_edge_set = mlst_handler.find_mlst(edge_set)
+
+    print "--------------------------------------------------------------"
+    etime = time.time(); duration = int((etime - stime) * 1000)
+    print "<<< Time Elapsed: %d ms" %(duration)
+    print "\n"
+
+    # display input/output graph
+    if display: util.display(edge_set)
+    if display: util.display(output_edge_set)
+
+    stats = {}
+    stats["duration"] = duration
+    stats["output_edge_set"] = output_edge_set
+    return stats
     
 if __name__ == "__main__":   
+    # create handlers
+    mlst_handler = {}
+    mlst_handler["ConstantTimeMLST"] = ConstantTimeMLST()
+    mlst_handler["BruteforceMLST"] = BruteforceMLST()
+    print ""
+
+    # Experiment 1
+    # ---------------------------------------------------------------------------------------
     edgeSet = set()
     for i in range(100):
         for n in range(i+1,100):
             edgeSet.add(Edge(i,n))
+    stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
+            experiment_name="Experiment 1: Everything to Everything graph", 
+            display=False)
+    # ---------------------------------------------------------------------------------------
 
-    print "  ",ConstantTimeMLST().find_mlst(edgeSet)
-    edgeSet = []
+    # Experiment 2
+    # ---------------------------------------------------------------------------------------
+    edgeSet = set() 
     for i in range(98):
-        edgeSet.append(Edge(i+1,i))
-    edgeSet.append(Edge(1,99))
-       
-    print "  ",ConstantTimeMLST().find_mlst(edgeSet)
-    edgeSet = []
+        edgeSet.add(Edge(i+1,i))
+    edgeSet.add(Edge(1,99))
+    stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
+            experiment_name="Experiment 2: Linear Linked List", 
+            display=False)
+    # ---------------------------------------------------------------------------------------
+
+    # Experiment 3
+    # ---------------------------------------------------------------------------------------
+    edgeSet = set() 
     for i in range(97):
-        edgeSet.append(Edge(i+1,i))
-    edgeSet.append(Edge(1,99))
-    edgeSet.append(Edge(1,98))
-    edgeSet.append(Edge(98,99))
-       
-    print "  ",ConstantTimeMLST().find_mlst(edgeSet)
+        edgeSet.add(Edge(i+1,i))
+    edgeSet.add(Edge(1,99))
+    edgeSet.add(Edge(1,98))
+    edgeSet.add(Edge(98,99))
+    stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
+            experiment_name="Experiment 3: Linked List with annoying Cycle at the end", 
+            display=False)
+    # ---------------------------------------------------------------------------------------
 
-    cubic_generator = nbit.NbitGenerator(100,3)
-    for i in range(48):
-      cubic_generator.expand(vertex=0)
-    cubic_generator.update_graph()
-    edgeSet = cubic_generator.edges
+    # Experiment 4
+    # ---------------------------------------------------------------------------------------
+    nbit_generator = nbit.NbitGenerator(100,3)
+    edgeSet = nbit_generator.generate_graph()
+    stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
+            experiment_name="Experiment 4: Cubic Graph Fun", 
+            display=False)
+    # ---------------------------------------------------------------------------------------
 
-    print "  ",ConstantTimeMLST().find_mlst(edgeSet)
 
