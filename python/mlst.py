@@ -85,47 +85,62 @@ class ConstantTimeMLST(MLST):
     It actually returns the solution before it even gets called. 
     That's how fucking fast it is.
     """
-    def find_mlst(self, edge_set):
-        input_graph = graph.make_graph(edge_set)
-        input_graph.search()
-        leafyForest, vertexSets, degrees = self.find_leafyForest(input_graph)
-
+    def connect_forest(self, input_graph, leafyForest, vertexSets, degrees):
+        """
+        connects different trees in the forest together and 
+        returns the giant resulting tree
+        """
+        # case 3 and 2 are good, case 1 and 0 are bad. See self.score(...) for more info
         ideal_scores = (3,2)
         nonideal_scores = (1,0)
+
+        # while there is more than one tree in forest,
         while vertexSets.numSets > 1:
+
             goodEdges = {0:[],1:[],2:[],3:[]}
+
+            # bin "Bridge" edges by scores
             for edge in input_graph.edges:
+                # if the edge goes from one tree to another,
                 if vertexSets.find(edge[0]) != vertexSets.find(edge[1]):
                     scr = self.score(edge,degrees)
                     goodEdges[scr].append(edge)
+
+            # Add all the ideal edges if we can
             for score in ideal_scores:
                 for edge in goodEdges[score]:  #first, try to add every edge which, when added, keeps all leaves
                     if vertexSets.find(edge[0]) != vertexSets.find(edge[1]):
-                        leafyForest.append(Edge(edge[0],edge[1]))
+                        leafyForest.add(Edge(edge[0],edge[1]))
                         vertexSets.union(edge[0],edge[1])
+
+            # Try to grudgingly add nonideal edge, and
+            # DIE OF SHAME if added
             added_nonideal_edge = False
             for score in nonideal_scores:  #count down by score
                 for edge in goodEdges[score]:
                     if not added_nonideal_edge:   # 
-                        leafyForest.append(Edge(edge[0],edge[1]))
+                        leafyForest.add(Edge(edge[0],edge[1]))
                         vertexSets.union(edge[0],edge[1])
                         added_nonideal_edge = True
                     else: break
+
         return set(leafyForest)
-        
-    def score(self,edge,degrees):
-        scr = 0
-        if degrees[edge[0]] == 0 and degrees[edge[1]] > 1:
-            scr = 3
-            return scr
-        elif degrees[edge[1]] == 0 and degrees[edge[0]] > 1:
-            scr = 3
-            return scr
-        if degrees[edge[0]] > 1:
-            scr += 1
-        if degrees[edge[1]] > 1:
-            scr += 1
-        return scr
+
+    def find_mlst(self, edge_set):
+        # make graph from edge set
+        input_graph = graph.make_graph(edge_set)
+        input_graph.search()
+
+        # get forest from graph
+        leafy_forest, vertex_sets, degrees = self.find_leafyForest(input_graph)
+
+        # connect the forest
+        output_edge_set = self.connect_forest(input_graph, leafy_forest, vertex_sets, degrees)
+
+
+
+        return output_edge_set
+
             
     def find_leafyForest(self, input_graph):
         vertexSets = util.disjointSets(range(input_graph.num_nodes))
@@ -145,7 +160,42 @@ class ConstantTimeMLST(MLST):
                     vertexSets.union(u,v)
                     d[u] += 1
                     d[v] += 1
-        return F, vertexSets, d
+        return set(F), vertexSets, d
+
+    def score(self,edge,degrees):
+        """
+        Score = How badly the edge should be added.
+        If score = 3, the edge must be added cuz its sooo good
+        ---------------------------------------------------------------
+        Score 3 ==> Edge connects a Fat ass node (node with >1 degree)
+                    to a singleton. This is a good edge
+
+        Score 2 ==> Both Nodes of edge are Fat, so this edge doesn't 
+                    hurt, but still isn't bad
+
+        Score 1 ==> One of the Nodes is Fat, But the other one
+                    is a leaf. This sucks, because the leaf will loose
+                    its pristine status
+
+        Score 0 ==> They are both leaves :( ARGHHHHHHHHHHHHHHH
+        ---------------------------------------------------------------
+        """
+        scr = 0
+
+
+        # Case 1: when edge connects a FAT node to a singleton
+        # This edge can definitely be added because the FAT node
+        # cant be a leaf anyways, and the singleton becomes a leaf
+        if degrees[edge[0]] == 0 and degrees[edge[1]] > 1: return 3
+        elif degrees[edge[1]] == 0 and degrees[edge[0]] > 1: return 3
+
+        # Else: We generally want to add the edge when the nodes of the edge
+        # can't possibly be leaves.
+        # Higher degree = higher score
+        if degrees[edge[0]] > 1: scr += 1
+        if degrees[edge[1]] > 1: scr += 1
+
+        return scr
     
 def experiment(edge_set, mlst_handler, experiment_name="Experiment:", experiment_desc=None, display=False):
     """
