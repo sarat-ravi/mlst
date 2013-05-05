@@ -26,6 +26,16 @@ def get_input_edge_sets(infile):
 
     return edge_sets
 
+def is_mlst(edge_set):
+    """
+    Get number of leaves if graph is mlst
+    else return False
+    """
+    import graph
+    graph = graph.make_graph(edge_set)
+    graph.search()
+    return graph.num_leaves if (graph.edges_in_one_component() and len(graph.get_edge_set()) == (graph.num_nodes - 1) and not graph.has_cycle) else False
+
 def write_output_to_file(edgesets,filename):
     """
     like checker.check_input(), reads from file and returns edge_sets
@@ -78,14 +88,14 @@ class disjointSets():
         self.items = lst[:]
         self.sets = [[item] for item in lst]
         self.numSets = len(lst)
-        
+
     def find(self,item):
         ind = self.mappings[item]
         while ind != self.mappings[self.items[ind]]:
             self.mappings[self.items[ind]] = self.mappings[self.items[self.mappings[self.items[ind]]]]
             ind = self.mappings[self.items[ind]]
         return self.items[ind]
-        
+
     def size(self,item):
         return self.sizes[self.mappings[self.find(item)]]
 
@@ -94,7 +104,7 @@ class disjointSets():
         self.sizes.append(1)
         self.items.append(identifier)
         self.sets.append([identifier])
-    
+
     def union(self,a,b):
         (big, little) = (a,b) if self.size(a) > self.size(b) else (b,a)
         littleSize = self.size(little)

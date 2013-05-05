@@ -40,7 +40,7 @@ class BullshitMLST(MLST):
 
         # install ipython, and you get to use this amazing tool
         # it goes into interactive shell mode, where you can tab-complete
-        #import IPython; IPython.embed() 
+        #import IPython; IPython.embed()
 
         return input_edge_set
 
@@ -81,13 +81,13 @@ class BruteforceMLST(MLST):
 
 class ConstantTimeMLST(MLST):
     """
-    Finds the perfect solution in negative time. 
-    It actually returns the solution before it even gets called. 
+    Finds the perfect solution in negative time.
+    It actually returns the solution before it even gets called.
     That's how fucking fast it is.
     """
     def connect_forest(self, input_graph, leafyForest, vertex_sets, degrees):
         """
-        connects different trees in the forest together and 
+        connects different trees in the forest together and
         returns the giant resulting tree
         """
         # case 3 and 2 are good, case 1 and 0 are bad. See self.score(...) for more info
@@ -118,7 +118,7 @@ class ConstantTimeMLST(MLST):
             added_nonideal_edge = False
             for score in nonideal_scores:  #count down by score
                 for edge in goodEdges[score]:
-                    if not added_nonideal_edge:   # 
+                    if not added_nonideal_edge:   #
                         leafyForest.add(Edge(edge[0],edge[1]))
                         vertex_sets.union(edge[0],edge[1])
                         added_nonideal_edge = True
@@ -130,7 +130,7 @@ class ConstantTimeMLST(MLST):
         """
         Returns an output_edge_set that represents the MLST
         -----------------------------------------------------------
-        1.  Finds forest from edge_set, 
+        1.  Finds forest from edge_set,
 
         2.  Connects the forests, and
 
@@ -174,13 +174,13 @@ class ConstantTimeMLST(MLST):
         still represents an MLST
         """
 
-        # TODO: actually implement this. 
+        # TODO: actually implement this.
         # NOTE: Actually, fuck it
         # ------------------------------------------------------
         output_edge_set = edge_set
         # ------------------------------------------------------
         return output_edge_set
-            
+
     def find_leafy_forest(self, input_graph, branch_threshold=3):
         """
         Given Graph, connects a bunch of forests
@@ -230,7 +230,7 @@ class ConstantTimeMLST(MLST):
         Score 3 ==> Edge connects a Fat ass node (node with >1 degree)
                     to a singleton. This is a good edge
 
-        Score 2 ==> Both Nodes of edge are Fat, so this edge doesn't 
+        Score 2 ==> Both Nodes of edge are Fat, so this edge doesn't
                     hurt, but still isn't bad
 
         Score 1 ==> One of the Nodes is Fat, But the other one
@@ -254,7 +254,7 @@ class ConstantTimeMLST(MLST):
         if degrees[edge[0]] > 1: scr += 1
         if degrees[edge[1]] > 1: scr += 1
         return scr
-    
+
 def experiment(edge_set, mlst_handler, experiment_name="Experiment:", experiment_desc=None, display=False):
     """
     Runs the experiment with a given handler and edge set
@@ -265,6 +265,8 @@ def experiment(edge_set, mlst_handler, experiment_name="Experiment:", experiment
     print "--------------------------------------------------------------"
 
     output_edge_set = mlst_handler.find_mlst(edge_set)
+
+    assert util.is_mlst(output_edge_set) != False
 
     print "--------------------------------------------------------------"
 
@@ -286,8 +288,8 @@ def experiment(edge_set, mlst_handler, experiment_name="Experiment:", experiment
     stats["duration"] = duration
     stats["output_edge_set"] = output_edge_set
     return stats
-    
-if __name__ == "__main__":   
+
+if __name__ == "__main__":
     # create handlers
     mlst_handler = {}
     mlst_handler["ConstantTimeMLST"] = ConstantTimeMLST()
@@ -301,31 +303,31 @@ if __name__ == "__main__":
         for n in range(i+1,100):
             edgeSet.add(Edge(i,n))
     stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
-            experiment_name="Experiment 1: Everything to Everything graph", 
+            experiment_name="Experiment 1: Everything to Everything graph",
             display=False)
     # ---------------------------------------------------------------------------------------
 
     # Experiment 2
     # ---------------------------------------------------------------------------------------
-    edgeSet = set() 
+    edgeSet = set()
     for i in range(98):
         edgeSet.add(Edge(i+1,i))
     edgeSet.add(Edge(1,99))
     stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
-            experiment_name="Experiment 2: Linear Linked List", 
+            experiment_name="Experiment 2: Linear Linked List",
             display=False)
     # ---------------------------------------------------------------------------------------
 
     # Experiment 3
     # ---------------------------------------------------------------------------------------
-    edgeSet = set() 
+    edgeSet = set()
     for i in range(97):
         edgeSet.add(Edge(i+1,i))
     edgeSet.add(Edge(1,99))
     edgeSet.add(Edge(1,98))
     edgeSet.add(Edge(98,99))
     stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
-            experiment_name="Experiment 3: Linked List with annoying Cycle at the end", 
+            experiment_name="Experiment 3: Linked List with annoying Cycle at the end",
             display=False)
     # ---------------------------------------------------------------------------------------
 
@@ -334,7 +336,7 @@ if __name__ == "__main__":
     nbit_generator = nbit.NbitGenerator(100,3)
     edgeSet = nbit_generator.generate_graph()
     stats = experiment(edge_set=edgeSet, mlst_handler=mlst_handler["ConstantTimeMLST"],
-            experiment_name="Experiment 4: Nbic Graph Fun", 
+            experiment_name="Experiment 4: Nbic Graph Fun",
             display=False)
     # ---------------------------------------------------------------------------------------
 
