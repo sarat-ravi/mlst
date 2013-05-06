@@ -36,6 +36,13 @@ def is_mlst(edge_set):
     graph.search()
     return graph.num_leaves if (graph.edges_in_one_component() and len(graph.get_edge_set()) == (graph.num_nodes - 1) and not graph.has_cycle) else False
 
+def get_cycle(spanning_tree, edge):
+    spanning_tree.add(edge)
+    import graph
+    graph = graph.make_graph(spanning_tree)
+    path = graph.search_for_cycle_path(edge)
+    return path #list of edges in cycle
+
 def write_output_to_file(edgesets,filename):
     """
     like checker.check_input(), reads from file and returns edge_sets

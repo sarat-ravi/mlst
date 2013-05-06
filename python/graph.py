@@ -101,6 +101,25 @@ class Graph:
                     self.num_of_components += 1
                     dfs(i, -1)
                     
+    def search_for_cycle_path(self, edge):
+        visited = [ False for i in range(config.MAX_NUM_NODES) ]
+        
+        def dfs(node, parent, path_so_far):
+            visited[node] = True
+
+            for u in self.neighbors[node]:
+                if u != parent:
+                    if not visited[u]:
+                        path_so_far.add(Edge(parent,u))
+                        dfs(u, node, path_so_far)
+                    else:
+                        return path_so_far
+        
+        s,t = edge.ends
+        visited[s] = True
+        return dfs(t,s,[edge])
+        
+                    
     def get_edge_set(self):
         edge_set = set()
         for vertex, neighbors in enumerate(self.neighbors):
