@@ -197,15 +197,15 @@ class ConstantTimeMLST(MLST):
         """
 
         # init variables
-        vertex_sets = util.disjointSets(range(input_graph.num_nodes))
-        degree = [0] * input_graph.num_nodes
+        vertex_sets = util.disjointSets( input_graph.get_vertices() )
+        degree = [0] * ( max( input_graph.get_vertices() ) + 1 )
         forest_edge_set = set()
 
         #graph_stats = input_graph.stats()
         #branch_threshold = graph_stats["average_degree"]
         #print "branch_threshold: %s" %(str(branch_threshold))
 
-        for v in range(input_graph.num_nodes):
+        for v in input_graph.get_vertices():
             S_prime = ([],[])
             d_prime = 0
             for u in input_graph.neighbors[v]:

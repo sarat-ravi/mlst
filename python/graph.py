@@ -100,10 +100,10 @@ class Graph:
                 if not visited[i]:
                     self.num_of_components += 1
                     dfs(i, -1)
-                    
+
     def search_for_cycle_path(self, edge):
         visited = [ False for i in range(config.MAX_NUM_NODES) ]
-        
+
         def dfs(node, parent, path_so_far):
             visited[node] = True
 
@@ -114,12 +114,12 @@ class Graph:
                         dfs(u, node, path_so_far)
                     else:
                         return path_so_far
-        
+
         s,t = edge.ends
         visited[s] = True
         return dfs(t,s,[edge])
-        
-                    
+
+
     def get_edge_set(self):
         edge_set = set()
         for vertex, neighbors in enumerate(self.neighbors):
@@ -128,3 +128,9 @@ class Graph:
                if edge not in edge_set:
                    edge_set.add( edge )
         return edge_set
+
+    def get_vertices(self):
+        """
+        returns a list of vertices in the graph in ascending order
+        """
+        return [ v for v in range(len(self.neighbors)) if len(self.neighbors[v]) > 0 ]
